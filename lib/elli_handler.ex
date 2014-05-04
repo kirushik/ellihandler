@@ -57,7 +57,7 @@ defmodule Elli.Handler do
     end
   end
     
-  defmacro get(path, params // nil, do: code) do
+  defmacro get(path, params \\ nil, do: code) do
     quote do
       match :GET, unquote(path), unquote(params) do
         unquote(code)
@@ -65,7 +65,7 @@ defmodule Elli.Handler do
     end
   end
   
-  defmacro post(path, params // nil, do: code) do
+  defmacro post(path, params \\ nil, do: code) do
     quote do
       match :POST, unquote(path), unquote(params) do
         unquote(code)
@@ -73,7 +73,7 @@ defmodule Elli.Handler do
     end
   end
   
-  defmacro put(path, params // nil, do: code) do
+  defmacro put(path, params \\ nil, do: code) do
     quote do
       match :PUT, unquote(path), unquote(params) do
         unquote(code)
@@ -81,7 +81,7 @@ defmodule Elli.Handler do
     end
   end
   
-  defmacro delete(path, params // nil, do: code) do
+  defmacro delete(path, params \\ nil, do: code) do
     quote do
       match :DELETE, unquote(path), unquote(params) do
         unquote(code)
@@ -89,7 +89,7 @@ defmodule Elli.Handler do
     end
   end
   
-  defmacro match(method, path, params // nil, do: code) do
+  defmacro match(method, path, params \\ nil, do: code) do
     params = compile_params(params)
     quote hygiene: [vars: false] do
       def handle(unquote(method), unquote(compile_path path), req) do
@@ -120,10 +120,10 @@ defmodule Elli.Handler do
   def http_ok(:html, body),                                         do: http_ok("text/html", body)
   def http_ok(:text, body),                                         do: http_ok("text/plain", body)
   def http_ok(content_type, body),                                  do: with_headers([{"Content-type", content_type}] , http_ok(body))
-  def http_not_found(body // "Not Found"),                          do: {404, [], body}
-  def http_permission_denied(body // "Permission denied"),          do: {403, [], body}
-  def http_internal_server_error(body // "Internal Server Error"),  do: {500, [], body}
-  def bad_request(body // "Bad Request"),                           do: {400, [], body}
+  def http_not_found(body \\ "Not Found"),                          do: {404, [], body}
+  def http_permission_denied(body \\ "Permission denied"),          do: {403, [], body}
+  def http_internal_server_error(body \\ "Internal Server Error"),  do: {500, [], body}
+  def bad_request(body \\ "Bad Request"),                           do: {400, [], body}
 
   def elli_ignore, do: :ignore
   def halt!(res), do: throw(res)
