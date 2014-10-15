@@ -2,7 +2,7 @@ defmodule Elli.Handler do
   
   defmacro __using__(_opts) do
     
-    quote do
+    quote location: :keep do
       @before_compile Elli.Handler
       @behaviour :elli_handler
       
@@ -37,8 +37,10 @@ defmodule Elli.Handler do
   defp compile_pattern(pat) do
     len = (String.length pat)
     if len >= 2 and (String.at pat, 0) == ":" do
-      atom = binary_to_atom(String.slice pat,1,len-1)
-      quote do var!(unquote(atom)) end
+      atom = String.to_atom(String.slice pat,1,len-1)
+      quote location: :keep do 
+        var!(unquote(Macro.var(atom, __MODULE__)))
+      end
     else
       pat
     end
@@ -48,17 +50,17 @@ defmodule Elli.Handler do
   defp compile_params({:with_params, _, params}), do: Enum.map(params, &compile_param(&1))
   
   defp compile_param({param,_,_}) do
-    param_binary = atom_to_binary(param)
-    quote hygiene: [vars: false] do
-      var!(unquote(param)) = req.get_arg(unquote(param_binary)) 
-      if var!(unquote(param)) == :undefined do 
+    param_binary = Atom.to_string(param)
+    quote location: :keep do
+      var!(unquote(Macro.var(param, __MODULE__))) = var!(req).get_arg(unquote(param_binary)) 
+      if var!(unquote(Macro.var(param, __MODULE__))) == :undefined do 
         halt! bad_request
       end
     end
   end
     
   defmacro get(path, params \\ nil, do: code) do
-    quote do
+    quote location: :keep do
       match :GET, unquote(path), unquote(params) do
         unquote(code)
       end
@@ -66,7 +68,7 @@ defmodule Elli.Handler do
   end
   
   defmacro post(path, params \\ nil, do: code) do
-    quote do
+    quote location: :keep do
       match :POST, unquote(path), unquote(params) do
         unquote(code)
       end
@@ -74,7 +76,7 @@ defmodule Elli.Handler do
   end
   
   defmacro put(path, params \\ nil, do: code) do
-    quote do
+    quote location: :keep do
       match :PUT, unquote(path), unquote(params) do
         unquote(code)
       end
@@ -82,7 +84,7 @@ defmodule Elli.Handler do
   end
   
   defmacro delete(path, params \\ nil, do: code) do
-    quote do
+    quote location: :keep do
       match :DELETE, unquote(path), unquote(params) do
         unquote(code)
       end
@@ -91,9 +93,9 @@ defmodule Elli.Handler do
   
   defmacro match(method, path, params \\ nil, do: code) do
     params = compile_params(params)
-    quote hygiene: [vars: false] do
-      def handle(unquote(method), unquote(compile_path path), req) do
-        req # don't complain about unused variable
+    quote location: :keep do
+      def handle(unquote(method), unquote(compile_path path), var!(req)) do
+        var!(req) # don't complain about unused variable
         unquote(params)
         unquote(code)
       end
@@ -101,10 +103,10 @@ defmodule Elli.Handler do
   end
   
   defmacro event(name, do: code) do
-    quote hygiene: [vars: false] do
-      def handle_event(unquote(name), data, args) do
-        data
-        args
+    quote location: :keep do
+      def handle_event(unquote(name), var!(data), var!(args)) do
+        var!(data)
+        var!(args)
         unquote(code)
       end
     end
@@ -129,7 +131,7 @@ defmodule Elli.Handler do
   def halt!(res), do: throw(res)
   
   defmacro __before_compile__(_env) do
-    quote do
+    quote location: :keep do
       def handle(_, _, req), do: elli_ignore
       def handle_event(_, _, _), do: :ok
     end

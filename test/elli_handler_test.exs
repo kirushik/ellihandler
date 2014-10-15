@@ -2,13 +2,19 @@ Code.require_file "test/test_helper.exs"
 
 defmodule Elli.Handler.Test do
   use ExUnit.Case
-  
+
   setup do
     :inets.start()
     
     config = [mods: [{Test.MiddlewareHandler, [prefix: "/middleware/"]}, {Test.Handler, []}]]
     { :ok, pid } = :elli.start_link [callback: :elli_middleware, callback_args: config, port: 3000]
-    { :ok, pid: pid }
+    Process.unlink pid
+
+    on_exit fn ->
+      :elli.stop pid
+    end
+
+    :ok
   end
   
   test "simple get" do
@@ -59,10 +65,6 @@ defmodule Elli.Handler.Test do
   test "middleware" do
     {:ok, {{_,200,_},_,response}} = :httpc.request('http://localhost:3000/middleware/hello')
     assert response == 'hello from middleware'
-  end
-  
-  teardown meta do
-    :elli.stop(meta[:pid])
   end
   
 end
