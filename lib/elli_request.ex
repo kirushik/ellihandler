@@ -68,7 +68,7 @@ defmodule Elli.HTTPRequest do
 
 
   def urldecode(<<?%, rest :: binary>>, acc), do: urldecode(rest, <<acc :: binary, ?%>>)
-  def urldecode(<<?+, rest :: binary>>, acc), do: urldecode(rest, <<acc :: binary, ? >>)
+  def urldecode(<<?+, rest :: binary>>, acc), do: urldecode(rest, <<acc :: binary, ?\s>>)
   def urldecode(<<c, rest :: binary>>, acc), do: urldecode(rest, <<acc :: binary, c>>)
   def urldecode(<<>>, acc), do: acc
 
