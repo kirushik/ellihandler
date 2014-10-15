@@ -95,7 +95,7 @@ defmodule Elli.Handler do
     params = compile_params(params)
     quote location: :keep do
       def handle(unquote(method), unquote(compile_path path), var!(req)) do
-        # req # don't complain about unused variable
+        var!(req) # don't complain about unused variable
         unquote(params)
         unquote(code)
       end
@@ -105,8 +105,8 @@ defmodule Elli.Handler do
   defmacro event(name, do: code) do
     quote location: :keep do
       def handle_event(unquote(name), var!(data), var!(args)) do
-        data
-        args
+        var!(data)
+        var!(args)
         unquote(code)
       end
     end
