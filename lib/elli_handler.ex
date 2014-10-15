@@ -37,7 +37,7 @@ defmodule Elli.Handler do
   defp compile_pattern(pat) do
     len = (String.length pat)
     if len >= 2 and (String.at pat, 0) == ":" do
-      atom = binary_to_atom(String.slice pat,1,len-1)
+      atom = String.to_atom(String.slice pat,1,len-1)
       quote do var!(unquote(atom)) end
     else
       pat
@@ -48,7 +48,7 @@ defmodule Elli.Handler do
   defp compile_params({:with_params, _, params}), do: Enum.map(params, &compile_param(&1))
   
   defp compile_param({param,_,_}) do
-    param_binary = atom_to_binary(param)
+    param_binary = Atom.to_string(param)
     quote hygiene: [vars: false] do
       var!(unquote(param)) = req.get_arg(unquote(param_binary)) 
       if var!(unquote(param)) == :undefined do 
